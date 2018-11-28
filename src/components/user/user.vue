@@ -35,7 +35,7 @@
 
         <el-table-column label="用户状态">
             <template slot-scope="scope">
-                <el-switch v-model="scope.row.mg_state" active-color="#13ce66" inactive-color="#ff4949">
+                <el-switch @change="userMgState(scope.row)" v-model="scope.row.mg_state" active-color="#13ce66" inactive-color="#ff4949">
                 </el-switch>
             </template>
         </el-table-column>
@@ -43,9 +43,9 @@
         <el-table-column prop="address" label="操作">
             <template slot-scope="scope">
                 <el-row>
-                    <el-button type="primary" size="mini" plain icon="el-icon-edit" circle @click="showAddUserEdit(scope.row.id)"></el-button>
+                    <el-button type="primary" size="mini" plain icon="el-icon-edit" circle @click="showAddUserEdit(scope.row)"></el-button>
                     <el-button type="danger" size="mini" plain icon="el-icon-delete" circle @click="showdeleteBox(scope.row.id)"></el-button>
-                    <el-button type="success" size="mini" plain icon="el-icon-check" circle></el-button>
+                    <el-button type="success" size="mini" plain icon="el-icon-check" circle @click="showCheckCurr(scope.row)"></el-button>
                 </el-row>
             </template>
         </el-table-column>
@@ -96,6 +96,26 @@
             <el-button type="primary" @click="editUser(form.id,form.email,form.mobile)">确 定</el-button>
         </div>
     </el-dialog>
+
+    <!-- 分配角色对话框 -->
+    <el-dialog title="分配角色" :visible.sync="dialogFormVisibleCurr">
+  <el-form :model="form">
+    <el-form-item label="活动名称" :label-width="formLabelWidth">
+        {{currName}}
+    </el-form-item>
+    <el-form-item label="角色" :label-width="formLabelWidth">
+        <!-- {{currRoleId}} -->
+      <el-select v-model="currRoleId" placeholder="请选择活动区域">
+        <el-option label="请选择" :value="-1 "></el-option>
+        <el-option :label="item.roleName" :value="item.id" v-for="(item,i) in currlist " :key="i"></el-option>
+      </el-select>
+    </el-form-item>
+  </el-form>
+  <div slot="footer" class="dialog-footer">
+    <el-button @click="dialogFormVisible = false">取 消</el-button>
+    <el-button type="primary" @click="setRole()">确 定</el-button>
+  </div>
+</el-dialog>
 </el-card>
 </template>
 
@@ -114,6 +134,7 @@ export default {
             // 定义添加用户数据
             dialogFormVisibleAdd: false, // 添加对话框隐藏
             dialogFormVisibleEdit: false, // 编辑对话隐藏
+            dialogFormVisibleCurr: false, // 分配角色对话隐藏
             dialogTableVisible: false,
             formLabelWidth: "120px",
             form: {
@@ -121,7 +142,15 @@ export default {
                 password: "",
                 email: "",
                 mobile: ""
-            }
+            },
+            // 分配角色数据
+           currRoleId:0,
+        //    存储角色分类
+           currlist:[],
+        //    用户名
+           currName:'',
+        //    用户id
+        currUserId:-1
         };
     },
     created() {
@@ -255,37 +284,64 @@ export default {
         },
 
         // 编辑用户
-        async showAddUserEdit(id) {
+        async showAddUserEdit(user) {
             this.dialogFormVisibleEdit = true;
-            // 发送请求获取用户信息
-            const res = await this.$http.get("users/" + id);
-            // console.log(res)
-            const {
-                meta: {
-                    status
-                }
-            } = res.data;
-            if (status === 200) {
-                //  console.log(res.data.data)
-                this.form = res.data.data;
-            }
+
+            this.form = user
         },
 
         // 编辑用户完成提交数据
-        async editUser(id, email, mobile) {
+        async editUser() {
             // 关闭对话框
             this.dialogFormVisibleEdit = false;
-            const res = await this.$http.put("users/" + id, {
-                email,
-                mobile
-            });
-            console.log(res);
+            const res = await this.$http.put(`users/${this.form.id}`, this.form);
+            // console.log(res);
             if (res.data.meta.status === 200) {
                 this.$message.success(res.data.meta.msg);
                 this.getData();
-            }else {
-              this.$message.error(res.data.meta.msg)
+            } else {
+                this.$message.error(res.data.meta.msg)
             }
+        },
+
+        // 改变switch按钮的状态
+        async userMgState(user) {
+            const res = await this.$http.put(`users/${user.id}/state/${user.mg_state}`);
+            console.log(res);
+            if (res.data.meta.status === 200) {
+                // 提示信息
+                this.$message.success(res.data.meta.msg);
+
+            }
+        },
+
+        // 显示分配角色对话框
+        async showCheckCurr(user) {
+            this.dialogFormVisibleCurr = true
+            // 获取用户名
+            this.currName = user.username;
+            // 发送请求获取角色分类
+            const res = await this.$http.get('roles');
+            console.log(res)
+            this.currlist = res.data.data
+            // 给用户id赋值
+            this.currUserId =user.id
+
+        //    根据id获取用户信息
+        const res1 = await this.$http.get(`users/${user.id}`);
+        // console.log(res1)
+        this.currRoleId = res1.data.data.rid
+        },
+
+        // 分配用户角色
+        async setRole() {
+            const res = await this.$http.put(`users/${this.currUserId}/role`,{rid:this.currRoleId})
+            // console.log(res)
+            if(res.data.meta.status === 200) {
+                this.$message.success(res.data.meta.msg)
+            }
+            // 关闭对话框
+            this.dialogFormVisibleCurr = false;
         }
     }
 };
