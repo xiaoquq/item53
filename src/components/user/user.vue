@@ -1,11 +1,7 @@
 <template>
 <el-card class="box-card">
     <!-- 面包屑 -->
-    <el-breadcrumb separator="/">
-        <el-breadcrumb-item><a href="/">用户</a></el-breadcrumb-item>
-        <el-breadcrumb-item>用户管理</el-breadcrumb-item>
-        <el-breadcrumb-item>用户列表</el-breadcrumb-item>
-    </el-breadcrumb>
+  <my-bread leav1="用户管理" leav2="用户列表"></my-bread>
 
     <!-- 搜索框 -->
     <el-row class="search-box">

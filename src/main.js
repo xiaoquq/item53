@@ -12,6 +12,8 @@ import moment from 'moment'
 
 import router from './router'
 
+// 导入封装的面包屑
+import myBread from '@/components/mybread/myBread.vue'
 // 引入css样式
 import '@/assets/css/base.css'
 
@@ -25,6 +27,8 @@ Vue.config.productionTip = false
 Vue.filter('fmData',(v)=>{
   return moment(v).format('YYYY-MM-DD')
 }) 
+// 定义面包屑全局组件
+Vue.component(myBread.name,myBread);
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
