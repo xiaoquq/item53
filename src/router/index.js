@@ -10,6 +10,8 @@ import User from '@/components/user/user.vue'
 import rights from '@/components/rights/rights.vue'
 // 引入角色列表
 import role from '@/components/rights/role.vue'
+// 引入商品列表
+import commodity from '@/components/commodity/commodity.vue'
 Vue.use(Router)
 
 export default new Router({
@@ -26,7 +28,8 @@ export default new Router({
       children:[
         {path:'/user',name:'user',component:User},
         {path:'/rights', name:'rights', component:rights},
-        {path:'/role',name:'role',component:role}
+        {path:'/role',name:'role',component:role},
+        {path:'/goods',name:'goods',component:commodity}
         
       ]
     },
